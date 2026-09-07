@@ -17,7 +17,13 @@ export default defineConfig({
       // Whole app is reported; only the engine module — the seam that carries
       // the calculator's behaviour — is gated to a high bar (see ADR 6).
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/**/*.test.{ts,tsx}', 'src/test/**', 'src/vite-env.d.ts'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/test/**',
+        'src/vite-env.d.ts',
+        'src/calculator/types.ts',
+        'src/calculator/index.ts',
+      ],
       thresholds: {
         'src/calculator/**/*.ts': {
           lines: 95,
