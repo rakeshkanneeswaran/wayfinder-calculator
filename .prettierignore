@@ -1,0 +1,12 @@
+# Only the app itself is Prettier-managed.
+/.agents
+/.claude
+/docs
+/dist
+/coverage
+/playwright-report
+/test-results
+/node_modules
+pnpm-lock.yaml
+*.md
+skills-lock.json
