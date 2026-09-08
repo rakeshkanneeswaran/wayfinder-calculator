@@ -9,6 +9,14 @@ export type HistoryEntry = {
   result: string;
 };
 
+/** A history entry projected for the view: expression and result pre-grouped. */
+export type HistoryRow = {
+  id: string;
+  expr: string;
+  resultDisp: string;
+  resultRaw: string;
+};
+
 export type State = {
   status: Status;
   display: string;

@@ -111,6 +111,22 @@ describe('equals behaviour', () => {
     expect(reducer(s, eq)).toEqual(s);
   });
 
+  it('keeps history newest-first across several calculations', () => {
+    const s = run([d(2), op('+'), d(2), eq, d(9), op('+'), d(9), eq]);
+    expect(s.history.map((e) => e.result)).toEqual(['18', '4']);
+  });
+
+  it('hard-caps history at 50, dropping the oldest', () => {
+    const actions: Action[] = [];
+    for (let i = 1; i <= 51; i++) {
+      actions.push(d(1), op('+'), d(i % 10), eq);
+    }
+    const s = run(actions);
+    expect(s.history).toHaveLength(50);
+    // the very first entry (1 + 1) has fallen off the end
+    expect(s.history.at(-1)).toMatchObject({ left: '1', right: '2', result: '3' });
+  });
+
   it('pushes exactly one history entry per completed calculation', () => {
     const s = run([d(7), op('×'), d(3), eq]);
     expect(s.history).toHaveLength(1);
@@ -224,30 +240,50 @@ describe('backspace', () => {
 });
 
 describe('recallResult', () => {
-  it('sets result state from any state including error', () => {
-    const err = run([d(9), op('÷'), d(0), eq]);
-    const s = reducer(err, { type: 'recallResult', value: '42' });
-    expect(s).toMatchObject({
-      status: 'result',
-      display: '42',
-      left: null,
-      operator: null,
-    });
-  });
+  const recall = (value: string): Action => ({ type: 'recallResult', value });
 
-  it('leaves history untouched', () => {
+  const fromEveryState: Array<[string, State]> = [
+    ['first', run([d(4), d(2)])],
+    ['operatorPending', run([d(7), op('+')])],
+    ['second', run([d(7), op('+'), d(3)])],
+    ['result', run([d(7), op('×'), d(3), eq])],
+    ['error', run([d(9), op('÷'), d(0), eq])],
+  ];
+
+  for (const [name, from] of fromEveryState) {
+    it(`loads the value into result state from ${name}`, () => {
+      const s = reducer(from, recall('99'));
+      expect(s).toMatchObject({
+        status: 'result',
+        display: '99',
+        left: null,
+        operator: null,
+      });
+      expect(s.history).toEqual(from.history);
+    });
+  }
+
+  it('lets an operator be applied straight after recall', () => {
     const withHistory = run([d(7), op('×'), d(3), eq]);
-    const s = reducer(withHistory, { type: 'recallResult', value: '99' });
-    expect(s.history).toHaveLength(1);
+    const s = run([op('+'), d(1), eq], reducer(withHistory, recall('21')));
+    expect(s.display).toBe('22');
   });
 });
 
 describe('clearHistory', () => {
-  it('empties history, touches nothing else', () => {
-    const s = run([d(7), op('×'), d(3), eq]);
-    const cleared = reducer(s, { type: 'clearHistory' });
-    expect(cleared.history).toHaveLength(0);
-    expect(cleared.display).toBe('21');
-    expect(cleared.status).toBe('result');
-  });
+  const fromEveryState: Array<[string, State]> = [
+    ['first', run([d(1)])],
+    ['operatorPending', run([d(7), op('+')])],
+    ['second', run([d(7), op('+'), d(3)])],
+    ['result', run([d(7), op('×'), d(3), eq])],
+    ['error', run([d(9), op('÷'), d(0), eq])],
+  ];
+
+  for (const [name, from] of fromEveryState) {
+    it(`empties history and leaves calculator state alone from ${name}`, () => {
+      const s = reducer(from, { type: 'clearHistory' });
+      expect(s.history).toHaveLength(0);
+      expect({ ...s, history: [] }).toEqual({ ...from, history: [] });
+    });
+  }
 });
