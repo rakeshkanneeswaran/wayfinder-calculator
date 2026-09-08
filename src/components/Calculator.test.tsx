@@ -45,4 +45,19 @@ describe('Calculator integration', () => {
     expect(text).toContain('0');
     expect(text).not.toContain('9');
   });
+
+  it('÷ 0 shows Error, absorbs further keys, and recovers on AC', async () => {
+    render(<Calculator />);
+    await press('9', 'Divide', '0', 'Equals');
+    expect(displayText()).toContain('Error');
+
+    // every key is a no-op in the error state except AC
+    await press('5', 'Add', 'Equals', 'Delete', 'Decimal point');
+    expect(displayText()).toContain('Error');
+
+    await press('All clear');
+    const text = displayText();
+    expect(text).toContain('0');
+    expect(text).not.toContain('Error');
+  });
 });

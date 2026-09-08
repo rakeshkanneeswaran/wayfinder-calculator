@@ -131,7 +131,7 @@ export function reducer(state: State, action: Action): State {
         id: newId(),
         left: format(left),
         operator,
-        right: display,
+        right: format(Number(display)),
         result: format(result),
       };
       return {

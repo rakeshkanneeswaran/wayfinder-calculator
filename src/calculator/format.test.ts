@@ -94,6 +94,14 @@ describe('format', () => {
     expect(format(1e-6)).toBe('0.000001');
   });
 
+  it('keeps the sign in exponential notation for large negatives', () => {
+    expect(format(-1e13)).toBe('-1e+13');
+  });
+
+  it('keeps the sign in exponential notation for tiny negatives', () => {
+    expect(format(-1e-7)).toBe('-1e-7');
+  });
+
   it('handles negative numbers', () => {
     expect(format(-5.5)).toBe('-5.5');
   });

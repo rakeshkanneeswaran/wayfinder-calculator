@@ -121,6 +121,16 @@ describe('equals behaviour', () => {
       result: '21',
     });
   });
+
+  it('normalises the right operand through format() in the history entry', () => {
+    const s = run([d(8), op('÷'), d(2), dot, d(0), d(0), eq]);
+    expect(s.history[0]).toMatchObject({
+      left: '8',
+      operator: '÷',
+      right: '2',
+      result: '4',
+    });
+  });
 });
 
 describe('history entry id generation', () => {
