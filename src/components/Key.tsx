@@ -21,7 +21,7 @@ export function Key({ label, ariaLabel, variant, gridClass, onPress }: KeyProps)
       type="button"
       aria-label={ariaLabel}
       onClick={onPress}
-      className={`flex items-center justify-center rounded-lg py-4 text-xl font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${variantClass[variant]} ${gridClass ?? ''}`}
+      className={`flex items-center justify-center rounded-lg py-4 text-xl font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none motion-reduce:transition-none ${variantClass[variant]} ${gridClass ?? ''}`}
     >
       {label}
     </button>

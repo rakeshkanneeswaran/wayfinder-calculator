@@ -84,4 +84,48 @@ describe('Calculator integration', () => {
     expect(text).toContain('0');
     expect(text).not.toContain('Error');
   });
+
+  it('announces settled values in the live region and stays silent on digit entry', async () => {
+    const { container } = render(<Calculator />);
+    const live = container.querySelector('[aria-live="polite"]')!;
+    expect(live).toHaveAttribute('aria-atomic', 'true');
+    expect(live.textContent).toBe('');
+
+    await press('7');
+    expect(live.textContent).toBe(''); // digit: silent
+
+    await press('Add');
+    expect(live).toHaveTextContent('7 plus'); // operator: spoken as a word
+    const afterOperator = live.textContent;
+
+    await press('3');
+    expect(live.textContent).toBe(afterOperator); // digit: node untouched, not re-fired
+
+    await press('Equals');
+    expect(live).toHaveTextContent('10'); // = : announces the result
+
+    await press('Divide', '0', 'Equals');
+    expect(live).toHaveTextContent('Error'); // error: announces
+  });
+
+  it('announces a recalled result and re-announces a repeated value', async () => {
+    const { container } = render(<Calculator />);
+    const live = container.querySelector('[aria-live="polite"]')!;
+
+    await press('8', 'Multiply', '4', 'Equals'); // row: 32
+    await press('9', 'Add', '9', 'Equals'); // row: 18
+
+    // recalling a row loads its result and announces it
+    await userEvent.click(screen.getByRole('button', { name: 'Recall 32' }));
+    expect(live).toHaveTextContent('32');
+    await press('Add', '1', 'Equals'); // operator applies to the recalled value
+    expect(live).toHaveTextContent('33');
+
+    // computing the same value again after AC still re-fires the region
+    await press('All clear');
+    const before = live.textContent;
+    await press('8', 'Multiply', '4', 'Equals');
+    expect(live).toHaveTextContent('32');
+    expect(live.textContent).not.toBe(before);
+  });
 });
